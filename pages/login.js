@@ -1,20 +1,46 @@
+// pages/login.js
+import { useEffect } from 'react';
+import { useRouter } from 'next/router';
 import { auth, provider, signInWithPopup } from '../lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 
-export default function LoginPage() {
-  const loginWithGoogle = async () => {
+export default function Login() {
+  const router = useRouter();
+
+  // ✅ Only redirect if user is logged in — once
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        router.push('/dashboard');
+      }
+    });
+    return () => unsubscribe(); // stop listening on unmount
+  }, [router]);
+
+  const handleLogin = async () => {
     try {
-      const result = await signInWithPopup(auth, provider);
-      console.log("User logged in:", result.user);
-      alert(`Welcome ${result.user.displayName}`);
+      await signInWithPopup(auth, provider);
+      // Don't need router.push here — it will happen from the listener
     } catch (err) {
-      console.error("Login error:", err);
+      alert('Login failed: ' + err.message);
     }
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', justifyContent: 'center', alignItems: 'center' }}>
-      <h1>Login to CollabSphere</h1>
-      <button onClick={loginWithGoogle} style={{ padding: '10px 20px', marginTop: '20px', background: '#4285F4', color: '#fff', border: 'none', borderRadius: '5px' }}>
+    <div style={{ textAlign: 'center', marginTop: '100px' }}>
+      <h1 style={{ color: '#333' }}>Login</h1>
+      <button
+        onClick={handleLogin}
+        style={{
+          padding: '10px 20px',
+          fontSize: '16px',
+          backgroundColor: '#0070f3',
+          color: '#fff',
+          border: 'none',
+          borderRadius: '5px',
+          cursor: 'pointer'
+        }}
+      >
         Sign in with Google
       </button>
     </div>
